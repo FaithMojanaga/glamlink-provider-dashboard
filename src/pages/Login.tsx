@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Logo from "../assets/logo.png";
 
 export default function Login() {
@@ -21,7 +21,7 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen bg-blue-100 p-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm flex flex-col items-center">
         <img src={Logo} alt="GlamLink Logo" className="w-24 h-24 mb-4" />
-        <h1 className="text-3xl font-bold text-pink-600 mb-6">Sign In</h1>
+        <h1 className="text-3xl font-bold text-pink-600 mb-6"></h1>
 
         {error && <p className="text-red-500 mb-3 text-sm">{error}</p>}
 
@@ -51,6 +51,14 @@ export default function Login() {
           Demo account: <br />
           <span className="font-medium">test@glamlink.com</span> /{" "}
           <span className="font-medium">123456</span>
+        </p>
+
+       
+        <p className="mt-6 text-sm text-gray-700">
+          No account?{" "}
+          <Link to="/signup" className="text-pink-600 hover:underline font-medium">
+            Sign up!
+          </Link>
         </p>
       </div>
     </div>
