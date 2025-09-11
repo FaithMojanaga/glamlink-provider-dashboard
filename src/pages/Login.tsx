@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/logo.png"; 
+import Logo from "../assets/logo.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -9,14 +9,9 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    // For demo purposes
-    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-    if (
-      (storedUser.email === email && storedUser.password === password) ||
-      (email === "test@glamlink.com" && password === "123456")
-    ) {
+    if (email === "test@glamlink.com" && password === "123456") {
       localStorage.setItem("isLoggedIn", "true");
-      navigate("/Services");
+      navigate("/dashboard"); 
     } else {
       setError("Invalid email or password. Use test@glamlink.com / 123456");
     }
@@ -26,7 +21,7 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen bg-blue-100 p-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm flex flex-col items-center">
         <img src={Logo} alt="GlamLink Logo" className="w-24 h-24 mb-4" />
-        <h1 className="text-3xl font-bold text-pink-600 mb-6"></h1>
+        <h1 className="text-3xl font-bold text-pink-600 mb-6">Sign In</h1>
 
         {error && <p className="text-red-500 mb-3 text-sm">{error}</p>}
 
@@ -53,13 +48,9 @@ export default function Login() {
         </button>
 
         <p className="mt-4 text-sm text-gray-600">
-          Don't have an account?{" "}
-          <span
-            className="text-pink-500 cursor-pointer hover:underline"
-            onClick={() => navigate("/SignUp")}
-          >
-            Sign Up
-          </span>
+          Demo account: <br />
+          <span className="font-medium">test@glamlink.com</span> /{" "}
+          <span className="font-medium">123456</span>
         </p>
       </div>
     </div>
