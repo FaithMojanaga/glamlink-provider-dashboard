@@ -1,6 +1,12 @@
+type ProviderLoginResponse = {
+  id?: string | number;
+  userId?: string | number;
+  // add other fields if needed
+};
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Logo from "../assets/logo.png";
+import api from "../api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -9,12 +15,22 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    if (email === "test@glamlink.com" && password === "123456") {
-      localStorage.setItem("isLoggedIn", "true");
-      navigate("/dashboard"); 
-    } else {
-      setError("Invalid email or password. Use test@glamlink.com / 123456");
-    }
+    api.post<ProviderLoginResponse>("/providers/login", { email, password })
+      .then((response) => {
+        const userId = response.data.id ?? response.data.userId ?? null;
+        if (userId) {
+          localStorage.setItem("userId", userId.toString());
+        }
+        localStorage.setItem("isLoggedIn", "true");
+        navigate("/dashboard");
+      })
+      .catch((error) => {
+        if (error.response && error.response.data && error.response.data.message) {
+          setError(error.response.data.message);
+        } else {
+          setError("Invalid email or password.");
+        }
+      });
   };
 
   return (

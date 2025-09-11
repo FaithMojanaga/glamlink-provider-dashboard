@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import NavBar from "../components/NavBar";
-import { services as initialServices } from "../data/services";
+import api from "../api";
 
 interface Service {
   id: number;
@@ -9,10 +9,7 @@ interface Service {
 }
 
 export default function Services() {
-  const [services, setServices] = useState<Service[]>(() => {
-    const saved = localStorage.getItem("services");
-    return saved ? JSON.parse(saved) : initialServices;
-  });
+  const [services, setServices] = useState<Service[]>([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -22,11 +19,24 @@ export default function Services() {
   const [greeting, setGreeting] = useState("");
 
   // Dynamic greeting
+
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Good morning!");
     else if (hour < 18) setGreeting("Good afternoon!");
     else setGreeting("Good evening!");
+
+    // Fetch services for logged-in user
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      api.get<Service[]>(`/services/provider/${userId}`)
+        .then((response) => {
+          setServices(response.data);
+        })
+        .catch(() => {
+          setServices([]);
+        });
+    }
   }, []);
 
   // Persist services
@@ -56,24 +66,45 @@ export default function Services() {
       return;
     }
     const priceNum = parseFloat(price);
+    const userId = localStorage.getItem("userId");
     if (editingService) {
-      // Update existing service
-      setServices(
-        services.map((s) =>
-          s.id === editingService.id ? { ...s, name, price: priceNum } : s
-        )
-      );
+      // Edit service
+      api.put(`/services/${editingService.id}`, { name, price: priceNum })
+        .then(() => {
+          // Refresh services list
+          if (userId) {
+            api.get<Service[]>(`/services/provider/${userId}`)
+              .then((response) => setServices(response.data));
+          }
+          setModalOpen(false);
+        })
+        .catch(() => setError("Failed to update service."));
     } else {
       // Add new service
-      setServices([...services, { id: Date.now(), name, price: priceNum }]);
+      if (userId) {
+        api.post(`/services`, { name, price: priceNum, provider_id: userId })
+          .then(() => {
+            api.get<Service[]>(`/services/provider/${userId}`)
+              .then((response) => setServices(response.data));
+            setModalOpen(false);
+          })
+          .catch(() => setError("Failed to add service."));
+      }
     }
-    setModalOpen(false);
   };
 
   const handleDelete = (id: number) => {
     const service = services.find((s) => s.id === id);
+    const userId = localStorage.getItem("userId");
     if (service && confirm(`Are you sure you want to delete "${service.name}"?`)) {
-      setServices(services.filter((s) => s.id !== id));
+      api.delete(`/services/${id}`)
+        .then(() => {
+          if (userId) {
+            api.get<Service[]>(`/services/provider/${userId}`)
+              .then((response) => setServices(response.data));
+          }
+        })
+        .catch(() => setError("Failed to delete service."));
     }
   };
 
@@ -105,7 +136,7 @@ export default function Services() {
             className="flex justify-between items-center bg-white p-3 rounded shadow transition hover:bg-gray-50"
           >
             <span>
-              {service.name} - P{service.price.toFixed(2)}
+              {service.name} - P{!isNaN(Number(service.price)) ? Number(service.price).toFixed(2) : "0.00"}
             </span>
             <div className="flex gap-2">
               <button

@@ -74,6 +74,7 @@ export default function Dashboard() {
         <div className="flex flex-col gap-2">
           {bookings.slice(0, 3).map((b) => (
             <Link
+              to="/bookings"
               key={b.id}
               className="flex justify-between items-center bg-white p-3 rounded-xl shadow hover:bg-pink-50 transition"
             >
@@ -82,7 +83,6 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-500">{b.service}</p>
               </div>
               <div className="text-right">
-                <p className="font-semibold">P{b.price ?? "350.00"}</p>
                 <span
                   className={`px-2 py-1 rounded text-sm ${
                     b.status === "Confirmed" || b.status === "Complete"

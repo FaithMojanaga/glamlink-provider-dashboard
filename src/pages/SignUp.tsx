@@ -1,4 +1,5 @@
 import { useState } from "react";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/logo.png";
 
@@ -21,11 +22,19 @@ export default function SignUp() {
       return;
     }
 
-    const user = { fullName, phone, email, password }; 
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("isLoggedIn", "true");
-
-    navigate("/Services");
+  const user = { name: fullName, phone, email, password };
+  api.post("/providers/register", user)
+      .then((response) => {
+        // You can handle response.data if needed
+        navigate("/Services");
+      })
+      .catch((error) => {
+        if (error.response && error.response.data && error.response.data.message) {
+          setError(error.response.data.message);
+        } else {
+          setError("Sign up failed. Please try again.");
+        }
+      });
   };
 
   return (
