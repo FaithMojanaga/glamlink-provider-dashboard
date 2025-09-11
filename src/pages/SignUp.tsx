@@ -4,7 +4,7 @@ import Logo from "../assets/logo.png";
 
 export default function SignUp() {
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState(""); // ✅ new state
+  const [phone, setPhone] = useState(""); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,7 +21,7 @@ export default function SignUp() {
       return;
     }
 
-    const user = { fullName, phone, email, password }; // ✅ save phone too
+    const user = { fullName, phone, email, password }; 
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("isLoggedIn", "true");
 
