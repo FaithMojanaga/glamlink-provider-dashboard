@@ -36,7 +36,9 @@ export default function Bookings() {
     if (userId) {
       api.get<Booking[]>(`/bookings/provider/${userId}`)
         .then((response) => {
-          setBookings(response.data);
+          // Only show bookings for the logged-in user
+          const filtered = response.data.filter((b) => b.provider_id?.toString() === userId.toString());
+          setBookings(filtered);
         })
         .catch(() => {
           setBookings([]);
@@ -44,6 +46,18 @@ export default function Bookings() {
     }
   }, []);
 
+  // Get today's date string
+  const todayStr = new Date().toISOString().split("T")[0];
+  // Only future and current bookings
+  const futureCurrentBookings = bookings.filter((b) => {
+    const bookingDateStr = b.time?.split("T")[0] || b.time;
+    let bookingDateISO = bookingDateStr;
+    if (bookingDateStr && bookingDateStr.includes("/")) {
+      const [day, month, year] = bookingDateStr.split("/");
+      bookingDateISO = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    return bookingDateISO >= todayStr;
+  });
   const services = Array.from(new Set(bookings.map((b) => b.service_name)));
 
   const toggleService = (service: string) => {
@@ -66,6 +80,7 @@ export default function Bookings() {
   };
 
   const handleAction = async (id: number, action: "Confirmed" | "Rejected" | "Reschedule") => {
+  console.log('Button clicked:', id, action);
     if (!id && id !== 0) return;
     setErrorMsg("");
     setSuccessMsg("");
@@ -132,12 +147,15 @@ export default function Bookings() {
 
   return (
     <div className="pb-16 p-4">
-      {/* Success/Error messages */}
+      {/* Success/Error/Loading messages */}
       {successMsg && (
         <div className="mb-4 p-2 bg-green-100 text-green-800 rounded">{successMsg}</div>
       )}
       {errorMsg && (
         <div className="mb-4 p-2 bg-red-100 text-red-800 rounded">{errorMsg}</div>
+      )}
+      {!successMsg && !errorMsg && loadingId !== null && (
+        <div className="mb-4 p-2 bg-blue-100 text-blue-800 rounded">Processing booking update...</div>
       )}
       {/* Greeting */}
       <div className="mb-6 p-4 bg-green-100 rounded shadow">
@@ -163,45 +181,48 @@ export default function Bookings() {
               <div className="flex flex-col gap-2 p-3 border-t">
                 {bookings
                   .filter((b) => b.service_name === service)
-                  .map((b) => (
-                    <div
-                      key={b.time + b.client_name + b.service_name}
-                      className="flex justify-between items-center bg-gray-50 p-2 rounded transition hover:bg-gray-100"
-                    >
-                      <div>
-                        <span className="font-medium">{b.client_name}</span> - <span className="text-sm text-gray-500">{b.service_name}</span> ({new Date(b.time).toLocaleString()})
-                        {b.status && (
-                          <span className={`ml-2 px-2 py-0.5 rounded text-sm ${statusColor(b.status)}`}>
-                            {b.status}
-                            {b.newDate && b.newTime ? `: ${b.newDate} ${b.newTime}` : ""}
-                          </span>
-                        )}
+                  .map((b) => {
+                    console.log('Booking:', b);
+                    return (
+                      <div
+                        key={b.time + b.client_name + b.service_name}
+                        className="flex justify-between items-center bg-gray-50 p-2 rounded transition hover:bg-gray-100"
+                      >
+                        <div>
+                          <span className="font-medium">{b.client_name}</span> - <span className="text-sm text-gray-500">{b.service_name}</span> ({new Date(b.time).toLocaleString()})
+                          {b.status && (
+                            <span className={`ml-2 px-2 py-0.5 rounded text-sm ${statusColor(b.status)}`}>
+                              {b.status}
+                              {b.newDate && b.newTime ? `: ${b.newDate} ${b.newTime}` : ""}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            className="text-green-500 hover:underline"
+                            onClick={() => handleAction(b.id, "Confirmed")}
+                            disabled={loadingId === b.id || b.status?.toLowerCase() === "confirmed"}
+                          >
+                            {loadingId === b.id ? "Processing..." : "Confirm"}
+                          </button>
+                          <button
+                            className="text-blue-500 hover:underline"
+                            onClick={() => handleAction(b.id, "Reschedule")}
+                            disabled={loadingId === b.id || b.status?.toLowerCase() === "confirmed"}
+                          >
+                            {loadingId === b.id ? "Processing..." : "Reschedule"}
+                          </button>
+                          <button
+                            className="text-red-500 hover:underline"
+                            onClick={() => handleAction(b.id, "Rejected")}
+                            disabled={loadingId === b.id || b.status?.toLowerCase() === "confirmed"}
+                          >
+                            {loadingId === b.id ? "Processing..." : "Reject"}
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          className="text-green-500 hover:underline"
-                          onClick={() => handleAction(b.id, "Confirmed")}
-                          disabled={loadingId === b.id}
-                        >
-                          {loadingId === b.id ? "Processing..." : "Confirm"}
-                        </button>
-                        <button
-                          className="text-blue-500 hover:underline"
-                          onClick={() => handleAction(b.id, "Reschedule")}
-                          disabled={loadingId === b.id}
-                        >
-                          {loadingId === b.id ? "Processing..." : "Reschedule"}
-                        </button>
-                        <button
-                          className="text-red-500 hover:underline"
-                          onClick={() => handleAction(b.id, "Rejected")}
-                          disabled={loadingId === b.id}
-                        >
-                          {loadingId === b.id ? "Processing..." : "Reject"}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             )}
           </div>
@@ -243,7 +264,7 @@ export default function Bookings() {
         </div>
       )}
 
-      <NavBar />
+  <NavBar bookingsCount={futureCurrentBookings.length} />
     </div>
   );
 }

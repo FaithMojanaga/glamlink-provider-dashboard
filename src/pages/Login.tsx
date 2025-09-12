@@ -1,6 +1,9 @@
 type ProviderLoginResponse = {
   id?: string | number;
   userId?: string | number;
+  name?: string;
+  fullName?: string;
+  provider_name?: string;
   // add other fields if needed
 };
 import { useState } from "react";
@@ -18,8 +21,12 @@ export default function Login() {
     api.post<ProviderLoginResponse>("/providers/login", { email, password })
       .then((response) => {
         const userId = response.data.id ?? response.data.userId ?? null;
+        const name = response.data.name ?? response.data.fullName ?? response.data.provider_name ?? "";
         if (userId) {
           localStorage.setItem("userId", userId.toString());
+        }
+        if (name) {
+          localStorage.setItem("providerName", name);
         }
         localStorage.setItem("isLoggedIn", "true");
         navigate("/dashboard");
@@ -80,3 +87,5 @@ export default function Login() {
     </div>
   );
 }
+
+localStorage.removeItem('userId');

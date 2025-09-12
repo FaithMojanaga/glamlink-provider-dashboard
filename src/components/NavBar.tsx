@@ -1,9 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
 
-export default function NavBar() {
+type NavBarProps = {
+  bookingsCount?: number;
+};
+
+export default function NavBar({ bookingsCount = 0 }: NavBarProps) {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState<number>(3); 
 
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
@@ -36,9 +38,9 @@ export default function NavBar() {
           aria-label="Bookings"
         >
           📅 <span>Bookings</span>
-          {notifications > 0 && (
+          {bookingsCount > 0 && (
             <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">
-              {notifications}
+              {bookingsCount}
             </span>
           )}
         </Link>
