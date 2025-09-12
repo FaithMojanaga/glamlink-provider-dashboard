@@ -4,6 +4,9 @@ type ProviderLoginResponse = {
   name?: string;
   fullName?: string;
   provider_name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
   // add other fields if needed
 };
 import { useState } from "react";
@@ -20,16 +23,69 @@ export default function Login() {
   const handleLogin = () => {
     api.post<ProviderLoginResponse>("/providers/login", { email, password })
       .then((response) => {
-        const userId = response.data.id ?? response.data.userId ?? null;
-        const name = response.data.name ?? response.data.fullName ?? response.data.provider_name ?? "";
-        if (userId) {
-          localStorage.setItem("userId", userId.toString());
-        }
-        if (name) {
-          localStorage.setItem("providerName", name);
-        }
-        localStorage.setItem("isLoggedIn", "true");
-        navigate("/dashboard");
+          console.log('Login response:', response.data); // Debug: check property names
+          const userId = response.data.id ?? response.data.userId ?? null;
+          const name = response.data.name ?? response.data.fullName ?? response.data.provider_name ?? "";
+          const email = response.data.email ?? "";
+          const phone = response.data.phone ?? "";
+          const role = response.data.role ?? "";
+          // If all required fields are present, store them and skip GET request
+          if (userId && name && email && phone && role) {
+            localStorage.setItem("userId", userId.toString());
+            localStorage.setItem("providerName", name);
+            localStorage.setItem("userEmail", email);
+            localStorage.setItem("userPhone", phone);
+            localStorage.setItem("userRole", role);
+            localStorage.setItem("isLoggedIn", "true");
+            navigate("/dashboard");
+          } else if (userId) {
+            localStorage.setItem("userId", userId.toString());
+            // Fetch full provider info only if something is missing
+            api.get(`/providers/${userId}`)
+              .then((providerRes) => {
+                const provider = providerRes.data as {
+                  name?: string;
+                  email?: string;
+                  phone?: string;
+                  role?: string;
+                };
+                localStorage.setItem("providerName", provider.name ?? name);
+                localStorage.setItem("userEmail", provider.email ?? email);
+                localStorage.setItem("userPhone", provider.phone ?? phone);
+                localStorage.setItem("userRole", provider.role ?? role);
+                localStorage.setItem("isLoggedIn", "true");
+                navigate("/dashboard");
+              })
+              .catch((err) => {
+                // fallback: store what we have
+                localStorage.setItem("providerName", name);
+                localStorage.setItem("userEmail", email);
+                if (phone) {
+                  localStorage.setItem("userPhone", phone);
+                }
+                if (role) {
+                  localStorage.setItem("userRole", role);
+                }
+                localStorage.setItem("isLoggedIn", "true");
+                navigate("/dashboard");
+              });
+          } else {
+            // fallback: store what we have
+            if (name) {
+              localStorage.setItem("providerName", name);
+            }
+            if (email) {
+              localStorage.setItem("userEmail", email);
+            }
+            if (phone) {
+              localStorage.setItem("userPhone", phone);
+            }
+            if (role) {
+              localStorage.setItem("userRole", role);
+            }
+            localStorage.setItem("isLoggedIn", "true");
+            navigate("/dashboard");
+          }
       })
       .catch((error) => {
         if (error.response && error.response.data && error.response.data.message) {

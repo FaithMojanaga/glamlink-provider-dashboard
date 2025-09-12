@@ -29,7 +29,8 @@ export default function Services() {
     // Fetch services for logged-in user
     const userId = localStorage.getItem("userId");
     if (userId) {
-      api.get<Service[]>(`/services/provider/${userId}`)
+      api
+        .get<Service[]>(`/services/provider/${userId}`)
         .then((response) => {
           setServices(response.data);
         })
@@ -69,11 +70,13 @@ export default function Services() {
     const userId = localStorage.getItem("userId");
     if (editingService) {
       // Edit service
-      api.put(`/services/${editingService.id}`, { name, price: priceNum })
+      api
+        .put(`/services/${editingService.id}`, { name, price: priceNum })
         .then(() => {
           // Refresh services list
           if (userId) {
-            api.get<Service[]>(`/services/provider/${userId}`)
+            api
+              .get<Service[]>(`/services/provider/${userId}`)
               .then((response) => setServices(response.data));
           }
           setModalOpen(false);
@@ -82,9 +85,11 @@ export default function Services() {
     } else {
       // Add new service
       if (userId) {
-        api.post(`/services`, { name, price: priceNum, provider_id: userId })
+        api
+          .post(`/services`, { name, price: priceNum, provider_id: userId })
           .then(() => {
-            api.get<Service[]>(`/services/provider/${userId}`)
+            api
+              .get<Service[]>(`/services/provider/${userId}`)
               .then((response) => setServices(response.data));
             setModalOpen(false);
           })
@@ -96,11 +101,16 @@ export default function Services() {
   const handleDelete = (id: number) => {
     const service = services.find((s) => s.id === id);
     const userId = localStorage.getItem("userId");
-    if (service && confirm(`Are you sure you want to delete "${service.name}"?`)) {
-      api.delete(`/services/${id}`)
+    if (
+      service &&
+      confirm(`Are you sure you want to delete "${service.name}"?`)
+    ) {
+      api
+        .delete(`/services/${id}`)
         .then(() => {
           if (userId) {
-            api.get<Service[]>(`/services/provider/${userId}`)
+            api
+              .get<Service[]>(`/services/provider/${userId}`)
               .then((response) => setServices(response.data));
           }
         })
@@ -108,7 +118,9 @@ export default function Services() {
     }
   };
 
-  const sortedServices = [...services].sort((a, b) => a.name.localeCompare(b.name));
+  const sortedServices = [...services].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
 
   return (
     <div className="pb-16 p-4 relative">
@@ -123,22 +135,25 @@ export default function Services() {
       {/* Add Service Button */}
       <button
         onClick={openAddModal}
-        className="mb-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+        className="mb-4 bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition"
       >
         + Add Service
       </button>
 
       {/* Service List */}
-      <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-4 gap-4">
         {sortedServices.map((service) => (
+
           <div
             key={service.id}
-            className="flex justify-between items-center bg-white p-3 rounded shadow transition hover:bg-gray-50"
+            className="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700"
           >
-            <span>
-              {service.name} - P{!isNaN(Number(service.price)) ? Number(service.price).toFixed(2) : "0.00"}
-            </span>
-            <div className="flex gap-2">
+            <div>
+              <h5 className="mb-2 text-2xl font-bold tracking-tight text-pink-600 dark:text-pink-400">
+                {service.name}
+              </h5>
+            </div>
+            <div className="mb-3 font-normal text-gray-700 dark:text-gray-400 flex gap-2">
               <button
                 onClick={() => openEditModal(service)}
                 className="text-blue-500 hover:underline"
@@ -151,6 +166,13 @@ export default function Services() {
               >
                 Delete
               </button>
+            </div>
+            <div 
+              className="inline-flex items-center px-3 py-2 text-sm font-bold text-pink-600 bg-pink-100 rounded-lg border border-pink-200"
+            >
+              P{!isNaN(Number(service.price))
+                ? Number(service.price).toFixed(2)
+                : "0.00"}
             </div>
           </div>
         ))}

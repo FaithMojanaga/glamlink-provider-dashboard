@@ -3,9 +3,10 @@ import NavBar from "../components/NavBar";
 
 export default function Profile() {
   const [greeting, setGreeting] = useState("");
-  const [name, setName] = useState("Konopo Faith");
-  const [email, setEmail] = useState("faithkonopomojanaga@gmail.com");
-  const [role, setRole] = useState("Nail Tech");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [role, setRole] = useState("");
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
@@ -14,6 +15,15 @@ export default function Profile() {
     if (hour < 12) setGreeting("Good morning!");
     else if (hour < 18) setGreeting("Good afternoon!");
     else setGreeting("Good evening!");
+    // Load user info from localStorage
+    const storedName = localStorage.getItem("providerName") || "";
+    const storedEmail = localStorage.getItem("userEmail") || "";
+    const storedPhone = localStorage.getItem("userPhone") || "";
+    const storedRole = localStorage.getItem("userRole") || "";
+    setName(storedName);
+    setEmail(storedEmail);
+    setPhone(storedPhone);
+    setRole(storedRole);
   }, []);
 
   // Handle profile picture upload
@@ -27,9 +37,52 @@ export default function Profile() {
 
   // Save changes
   const handleSave = () => {
-   
-    setMessage("Profile updated successfully!");
-    setTimeout(() => setMessage(""), 3000);
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      setMessage("User ID not found. Please log in again.");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+    import("../api").then(({ default: api }) => {
+      api.put(`/providers/${userId}`, {
+        name,
+        email,
+        phone,
+        role,
+      })
+        .then(() => {
+          // Fetch updated provider info
+          api.get(`/providers/${userId}`)
+            .then((providerRes) => {
+              const provider = providerRes.data as {
+                name?: string;
+                email?: string;
+                phone?: string;
+                role?: string;
+              };
+              setName(provider.name ?? name);
+              setEmail(provider.email ?? email);
+              setPhone(provider.phone ?? phone);
+              setRole(provider.role ?? role);
+              localStorage.setItem("providerName", provider.name ?? name);
+              localStorage.setItem("userEmail", provider.email ?? email);
+              localStorage.setItem("userPhone", provider.phone ?? phone);
+              localStorage.setItem("userRole", provider.role ?? role);
+              setMessage("Profile updated successfully!");
+              setTimeout(() => setMessage(""), 3000);
+            })
+            .catch((error) => {
+              console.error("Fetch updated provider error:", error);
+              setMessage("Profile updated, but failed to fetch latest info.");
+              setTimeout(() => setMessage(""), 3000);
+            });
+        })
+        .catch((error) => {
+          console.error("Profile update error:", error);
+          setMessage("Failed to update profile. Please try again.");
+          setTimeout(() => setMessage(""), 3000);
+        });
+    });
   };
 
   return (
@@ -74,6 +127,15 @@ export default function Profile() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Phone</label>
+            <input
+              type="text"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
           </div>
