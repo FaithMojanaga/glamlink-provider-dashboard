@@ -26,7 +26,7 @@ export default function BookingDetails() {
   return (
     <div className="p-6 min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="flex justify-between items-center mb-6">
+  <header className="flex justify-between items-center mb-6 bg-pink-500 text-white rounded shadow p-4">
         <h1 className="text-2xl font-bold text-pink-600">Booking Details</h1>
         <button
           onClick={() => navigate(-1)}

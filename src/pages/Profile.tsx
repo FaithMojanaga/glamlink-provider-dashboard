@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import NavBar from "../components/NavBar";
 
 export default function Profile() {
+  const [showModal, setShowModal] = useState(false);
   const [greeting, setGreeting] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -69,7 +70,11 @@ export default function Profile() {
               localStorage.setItem("userPhone", provider.phone ?? phone);
               localStorage.setItem("userRole", provider.role ?? role);
               setMessage("Profile updated successfully!");
-              setTimeout(() => setMessage(""), 3000);
+              setShowModal(true);
+              setTimeout(() => {
+                setMessage("");
+                setShowModal(false);
+              }, 3000);
             })
             .catch((error) => {
               console.error("Fetch updated provider error:", error);
@@ -88,7 +93,7 @@ export default function Profile() {
   return (
     <div className="pb-16 p-4">
       {/* Greeting */}
-      <div className="mb-6 p-4 bg-yellow-100 rounded shadow">
+  <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white">
         <h2 className="text-lg font-bold">{greeting} {name}!</h2>
         <p className="text-gray-700">
           Update your profile information below.
@@ -104,7 +109,7 @@ export default function Profile() {
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover border"
           />
-          <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full cursor-pointer hover:bg-blue-600">
+          <label className="absolute bottom-0 right-0 bg-pink-500 text-white p-1 rounded-full cursor-pointer hover:bg-pink-600">
             <input type="file" accept="image/*" className="hidden" onChange={handleProfilePicChange} />
             ✎
           </label>
@@ -158,13 +163,30 @@ export default function Profile() {
         {/* Save Button */}
         <button
           onClick={handleSave}
-          className="mt-4 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+          className="mt-4 w-full bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 transition"
         >
           Save Changes
         </button>
 
         {/* Success Message */}
         {message && <p className="text-green-500 mt-2">{message}</p>}
+
+        {/* Modal Dialog */}
+        {showModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white border border-green-500 rounded-lg shadow-lg p-6 flex flex-col items-center">
+              <span className="text-green-600 text-xl font-bold mb-2">Success!</span>
+              <span className="text-gray-700 mb-4">Profile has been updated successfully.</span>
+              <button
+                className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
+                onClick={() => setShowModal(false)}
+              >
+                OK
+              </button>
+            </div>
+            <div className="fixed inset-0 bg-black opacity-30 z-40" />
+          </div>
+        )}
       </div>
 
       <NavBar />

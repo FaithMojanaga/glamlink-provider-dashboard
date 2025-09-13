@@ -125,7 +125,7 @@ export default function Services() {
   return (
     <div className="pb-16 p-4 relative">
       {/* Greeting */}
-      <div className="mb-6 p-4 bg-blue-100 rounded shadow">
+  <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white">
         <h2 className="text-lg font-bold">{greeting} Welcome to GlamLink!</h2>
         <p className="text-gray-700">
           Add, edit, or remove services and their prices.

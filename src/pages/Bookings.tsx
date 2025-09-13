@@ -85,7 +85,7 @@ export default function Bookings() {
 
   const handleAction = async (
     id: number,
-    action: "Confirmed" | "Rejected" | "Reschedule"
+    action: "Confirmed" | "Rejected" | "Reschedule" | "Complete" | "Cancel"
   ) => {
     if (!id && id !== 0) return;
     setErrorMsg("");
@@ -95,7 +95,7 @@ export default function Bookings() {
     } else {
       setLoadingId(id);
       try {
-        const res = await api.put(`/bookings/${id}/status`, {
+        await api.patch(`/bookings/${id}/status`, {
           status: action.toLowerCase(),
         });
         setSuccessMsg(`Booking status updated to ${action}`);
@@ -175,7 +175,7 @@ export default function Bookings() {
       )}
 
       {/* Greeting */}
-      <div className="mb-6 p-4 bg-green-100 rounded shadow">
+  <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white">
         <h2 className="text-lg font-bold">
           {greeting} Welcome to your GlamLink!
         </h2>

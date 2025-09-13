@@ -1,18 +1,18 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import NavBar from "../components/NavBar";
-import { bookings } from "../data/bookings";
-import { services } from "../data/services";
 
 export default function Dashboard() {
   // Calculate future/current bookings for NavBar
-  const [futureCurrentBookingsCount, setFutureCurrentBookingsCount] = useState(0);
+  const [futureCurrentBookingsCount, setFutureCurrentBookingsCount] =
+    useState(0);
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId) {
       import("../api").then(({ default: api }) => {
-        api.get(`/bookings/provider/${userId}`)
+        api
+          .get(`/bookings/provider/${userId}`)
           .then((response) => {
             const bookings = response.data as any[];
             const todayStr = new Date().toISOString().split("T")[0];
@@ -21,7 +21,10 @@ export default function Dashboard() {
               let bookingDateISO = bookingDateStr;
               if (bookingDateStr && bookingDateStr.includes("/")) {
                 const [day, month, year] = bookingDateStr.split("/");
-                bookingDateISO = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+                bookingDateISO = `${year}-${month.padStart(
+                  2,
+                  "0"
+                )}-${day.padStart(2, "0")}`;
               }
               return bookingDateISO >= todayStr;
             });
@@ -31,8 +34,10 @@ export default function Dashboard() {
       });
     }
   }, []);
+
   const [greeting, setGreeting] = useState("");
-  const providerName = localStorage.getItem("providerName") || "Service Provider";
+  const providerName =
+    localStorage.getItem("providerName") || "Service Provider";
 
   // Dynamic greeting
   useEffect(() => {
@@ -48,24 +53,24 @@ export default function Dashboard() {
   const [todayBookings, setTodayBookings] = useState(0);
 
   useEffect(() => {
-    // Fetch services and bookings for logged-in provider
     const userId = localStorage.getItem("userId");
     if (userId) {
       import("../api").then(({ default: api }) => {
-        api.get(`/services/provider/${userId}`)
+        api
+          .get(`/services/provider/${userId}`)
           .then((response) => {
             setTotalServices((response.data as any[]).length);
           })
           .catch(() => setTotalServices(0));
 
-        api.get(`/bookings/provider/${userId}`)
+        api
+          .get(`/bookings/provider/${userId}`)
           .then((response) => {
             const bookings = response.data as any[];
             setTotalBookings(bookings.length);
-            // Bookings today
+
             const today = new Date().toISOString().split("T")[0];
             const todayCount = bookings.filter((b) => {
-              // Support both 'date' and 'time' fields
               const bookingDate = b.date ?? b.time?.split("T")[0];
               return bookingDate === today;
             }).length;
@@ -79,20 +84,18 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Previous bookings: all bookings except today's
+  // Previous bookings: all except today's
   const [previousBookings, setPreviousBookings] = useState<any[]>([]);
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId) {
       import("../api").then(({ default: api }) => {
-        api.get(`/bookings/provider/${userId}`)
+        api
+          .get(`/bookings/provider/${userId}`)
           .then((response) => {
             const bookings = response.data as any[];
-            const today = new Date();
-            const todayStr = today.toISOString().split("T")[0];
-            // Only show bookings for the logged-in provider and before today
+            const todayStr = new Date().toISOString().split("T")[0];
             const prev = bookings.filter((b) => {
-              // If booking has providerId, filter by userId
               if (b.providerId && b.providerId !== userId) return false;
               const bookingDateStr = b.date ?? b.time?.split("T")[0];
               if (!bookingDateStr) return false;
@@ -115,16 +118,12 @@ export default function Dashboard() {
       </header>
 
       {/* Hero */}
-      <div className="bg-pink-500 text-white p-6 rounded-2xl shadow mb-6 text-center">
-        <h2 className="text-xl font-bold">{greeting}</h2>
-        <p className="mt-1">Welcome back, {providerName} 👋</p>
-        <div className="mt-4">
-          <img
-            src="https://via.placeholder.com/120"
-            alt="Service Provider"
-            className="w-28 h-28 rounded-full border-4 border-white mx-auto"
-          />
-        </div>
+      <div className="bg-pink-500 text-white p-10 rounded-2xl shadow mb-6 text-center">
+        <h2 className="text-2xl font-extrabold">{greeting}</h2>
+        <p className="mt-2 text-lg">Welcome back, {providerName} 👋</p>
+        <p className="mt-3 text-sm opacity-90">
+          Manage your bookings and services with ease ✨
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -157,13 +156,14 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-2">
           {previousBookings.slice(0, 3).map((b) => {
-            // Format date and time for display
             let dateStr = b.date;
             let timeStr = b.time;
-            // If date is not in YYYY-MM-DD, try to parse DD/MM/YYYY
             if (dateStr && dateStr.includes("/")) {
               const [day, month, year] = dateStr.split("/");
-              dateStr = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+              dateStr = `${year}-${month.padStart(2, "0")}-${day.padStart(
+                2,
+                "0"
+              )}`;
             }
             return (
               <Link
@@ -173,13 +173,18 @@ export default function Dashboard() {
               >
                 <div>
                   <p className="font-medium">{b.client_name ?? b.client}</p>
-                  <p className="text-sm text-gray-500">{b.service_name ?? b.service}</p>
-                  <p className="text-xs text-gray-400">{dateStr} {timeStr}</p>
+                  <p className="text-sm text-gray-500">
+                    {b.service_name ?? b.service}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {dateStr} {timeStr}
+                  </p>
                 </div>
                 <div className="text-right">
                   <span
                     className={`px-2 py-1 rounded text-sm ${
-                      b.status?.toLowerCase() === "confirmed" || b.status?.toLowerCase() === "complete"
+                      b.status?.toLowerCase() === "confirmed" ||
+                      b.status?.toLowerCase() === "complete"
                         ? "bg-green-100 text-green-600"
                         : b.status?.toLowerCase() === "pending"
                         ? "bg-yellow-100 text-yellow-600"
@@ -195,7 +200,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-  <NavBar bookingsCount={futureCurrentBookingsCount} />
+      <NavBar bookingsCount={futureCurrentBookingsCount} />
     </div>
   );
 }
